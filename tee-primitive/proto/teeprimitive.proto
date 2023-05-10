@@ -1,0 +1,31 @@
+syntax = "proto3";
+package teeprimitive;
+
+service GetEvidence {
+    rpc GetQuote (GetQuoteRequest) returns (QuoteReply);
+    rpc GetIMA (GetImaRequest) returns (ImaReply);
+    rpc GetCcel (GetCcelRequest) returns (CcelReply);
+
+}
+
+message GetQuoteRequest {
+   string runtimedata = 1;
+}
+
+message QuoteReply {
+    string quote = 1;
+}
+
+message GetImaRequest {
+}
+
+message ImaReply {
+    string ima = 1;
+}
+
+message GetCcelRequest {
+}
+
+message CcelReply {
+    string ccel = 1;
+}
