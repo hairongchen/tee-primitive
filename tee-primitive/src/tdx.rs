@@ -38,5 +38,33 @@ pub fn tdx_get_quote(report_data: String) -> Result<String> {
         };
 
         serde_json::to_string(&quote)
-            .map_err(|e| anyhow!("Serialize TDX evidence failed: {:?}", e))
+            .map_err(|e| anyhow!("Serialize TDX quote failed: {:?}", e))
+}
+
+pub fn tdx_get_ima() -> Result<String> {
+    const IMA_PATH: &str = "/sys/kernel/security/ima/ascii_runtime_measurements";
+
+    let ima_eventlog = match std::fs::read(IMA_PATH) {
+        Result::Ok(el) => Some(base64::encode(el)),
+        Result::Err(e) => {
+            log::warn!("Read IMA Eventlog failed: {:?}", e);
+            None
+        }
+    };
+    serde_json::to_string(&ima_eventlog)
+    .map_err(|e| anyhow!("Serialize IMA Eventlog failed: {:?}", e))    
+}
+
+pub fn tdx_get_ccel() -> Result<String> {
+    const CCEL_PATH: &str = "/sys/firmware/acpi/tables/data/CCEL";
+
+    let cc_eventlog = match std::fs::read(CCEL_PATH) {
+        Result::Ok(el) => Some(base64::encode(el)),
+        Result::Err(e) => {
+            log::warn!("Read CC Eventlog failed: {:?}", e);
+            None
+        }
+    };
+    serde_json::to_string(&cc_eventlog)
+    .map_err(|e| anyhow!("Serialize IMA Eventlog  failed: {:?}", e))    
 }

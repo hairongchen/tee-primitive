@@ -4,7 +4,7 @@ use tee_primitive::get_evidence_server::{GetEvidence, GetEvidenceServer};
 use tee_primitive::{GetQuoteRequest, QuoteReply, GetImaRequest, ImaReply, GetCcelRequest, CcelReply};
 
 pub mod tdx;
-use tdx::tdx_get_quote;
+use tdx::*;
 
 pub mod tee_primitive {
     tonic::include_proto!("teeprimitive");
@@ -19,7 +19,7 @@ impl GetEvidence for TDXGetEvidence {
         &self,
         request: Request<GetQuoteRequest>,
     ) -> Result<Response<QuoteReply>, Status> {
-        println!("Got a request: {:?}", request);
+        println!("Got get_quote request: {:?}", request);
 
         let reply = tee_primitive::QuoteReply {
             quote: format!("{}", tdx_get_quote(request.into_inner().reportdata).unwrap()).into(),
@@ -32,10 +32,10 @@ impl GetEvidence for TDXGetEvidence {
         &self,
         request: Request<GetImaRequest>,
     ) -> Result<Response<ImaReply>, Status> {
-        println!("Got a request: {:?}", request);
+        println!("Got get_ima request: {:?}", request);
 
         let reply = tee_primitive::ImaReply {
-            ima: format!("ima_data").into(),
+            ima: format!("{}",tdx_get_ima().unwrap()).into(),
         };
 
         Ok(Response::new(reply))
@@ -45,10 +45,10 @@ impl GetEvidence for TDXGetEvidence {
         &self,
         request: Request<GetCcelRequest>,
     ) -> Result<Response<CcelReply>, Status> {
-        println!("Got a request: {:?}", request);
+        println!("Got get_ccel request: {:?}", request);
 
         let reply = tee_primitive::CcelReply {
-            ccel: format!("ccel_data").into(),
+            ccel: format!("{}",tdx_get_ccel().unwrap()).into(),
         };
 
         Ok(Response::new(reply))
