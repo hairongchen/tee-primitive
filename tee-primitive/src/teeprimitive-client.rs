@@ -11,25 +11,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     //get Quote
     let request = tonic::Request::new(GetQuoteRequest {
-        runtimedata: "abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg".into(),
+        reportdata: base64::encode("123456781234567812345678123456781234567812345678").into(),
     });
-
     let response = client.get_quote(request).await?;
-
     println!("RESPONSE={:?}", response);
 
     //get IMA
     let request1 = tonic::Request::new(GetImaRequest {});
-
     let response1 = client.get_ima(request1).await?;
-
     println!("RESPONSE={:?}", response1);
 
     ////get CCEL
     let request2 = tonic::Request::new(GetCcelRequest {});
-
     let response2 = client.get_ccel(request2).await?;
-
     println!("RESPONSE={:?}", response2);
 
     Ok(())
