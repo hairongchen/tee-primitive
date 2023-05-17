@@ -1,15 +1,15 @@
 [package]
-name = "tee-primitive-server"
+name = "quoteServer"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]] # Bin to run the teeprimitive gRPC server
-name = "teeprimitive-server"
-path = "src/teeprimitive-server.rs"
+[[bin]] # Bin to run the quoteServer gRPC server
+name = "quote_server"
+path = "src/quote_server.rs"
 
-[[bin]] # Bin to run the teeprimitive gRPC client
-name = "teeprimitive-client"
-path = "src/teeprimitive-client.rs"
+[[bin]] # Bin to run the quoteClient gRPC client
+name = "quote_client"
+path = "src/quote_client.rs"
 
 [dependencies]
 tonic = "0.9"
@@ -20,6 +20,7 @@ async-trait = "0.1.56"
 base64 = "0.13.0"
 log = "0.4.14"
 serde_json = "1.0"
+clap = { version = "4.0.29", features = ["derive"] }
 #tdx-attest-rs = { git = "https://github.com/intel/SGXDataCenterAttestationPrimitives", rev = "cc582e8be0c9010295c66fb58c59f74744017600", optional = true }
 tdx-attest-rs = { path = "./SGXDataCenterAttestationPrimitives/QuoteGeneration/quote_wrapper/tdx-attest-rs"}
 
