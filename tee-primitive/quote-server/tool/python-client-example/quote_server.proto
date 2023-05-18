@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package quoteserver;
+
+service GetQuote {
+    rpc GetQuote (GetQuoteRequest) returns (QuoteReply);
+}
+
+message GetQuoteRequest {
+   string report_data = 1;
+}
+
+message QuoteReply {
+    string quote = 1;
+}

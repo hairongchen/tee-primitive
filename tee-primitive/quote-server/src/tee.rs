@@ -2,6 +2,7 @@ use anyhow::*;
 use std::path::Path;
 use tdx_attest_rs;
 
+#[derive(Debug,Clone)]
 pub enum TeeType {
     TDX,
     SEV,
@@ -21,20 +22,26 @@ pub fn get_tee_type() -> TeeType {
     }
 }
 
-pub fn get_tdx_quote(report_data: String) -> Result<String> {
+pub fn get_tdx_quote(report_data: Option<String>) -> Result<String> {
 
-    let mut report_data_bin = base64::decode(report_data.clone())?;
-    //println!("runtime data decoded: {:?}",  std::str::from_utf8(&report_data_bin));
-
-    if report_data_bin.len() != 48 {
-        return Err(anyhow!(
-            "get_tdx_quote: runtime data should be SHA384 base64 String of 48 bytes"
-        ));
-    }
-    report_data_bin.extend([0; 16]);
-
-    let tdx_report_data = tdx_attest_rs::tdx_report_data_t {
-        d: report_data_bin.as_slice().try_into()?,
+    let tdx_report_data = match report_data {
+        Some(_report_data) => {
+            if _report_data.len() == 0{
+                tdx_attest_rs::tdx_report_data_t { d: [0u8; 64usize] }
+            } else {
+                let mut _tdx_report_data = base64::decode(_report_data.clone())?;
+                if _tdx_report_data.len() != 48 {
+                    return Err(anyhow!(
+                        "get_tdx_quote: runtime data should be SHA384 base64 String of 48 bytes"
+                    ));
+                }
+                _tdx_report_data.extend([0; 16]);
+                tdx_attest_rs::tdx_report_data_t {
+                    d: _tdx_report_data.as_slice().try_into()?,
+                }
+            }
+        },
+        None =>  tdx_attest_rs::tdx_report_data_t { d: [0u8; 64usize] },
     };
 
     let quote = match tdx_attest_rs::tdx_att_get_quote(Some(&tdx_report_data), None, None, 0) {
@@ -58,37 +65,47 @@ pub fn get_sev_quote() -> Result<String> {
     Err(anyhow!("SEV to be supported!"))
 }
 
-pub fn get_quote(report_data: String) -> Result<String> {
-    match get_tee_type(){
-        TeeType::TDX => return get_tdx_quote(report_data),
+pub fn get_quote(local_tee: TeeType, report_data: String) -> Result<String> {
+    match local_tee {
+        TeeType::TDX => return get_tdx_quote(Some(report_data)),
         TeeType::TPM => return get_tpm_quote(),
         TeeType::SEV => return get_sev_quote(),
-        TeeType::PLAIN => return Err(anyhow!("get_quote: No TEE env found!")),
+        _ => return Err(anyhow!("Unexpected case!")),
     }
 }
 
 #[test]
 fn tdx_report_data_size_8() {
     // "YWJjZGVmZw==" is base64 of "abcdefg", 8 bytes
-    let result = get_tdx_quote("YWJjZGVmZw==".to_string());
+    let result = get_tdx_quote(Some("YWJjZGVmZw==".to_string()));
     assert!(result.is_err());
 }
 
 #[test]
 fn tdx_report_data_size_0() {
-    let result = get_tdx_quote("".to_string());
-    assert!(result.is_err());
+    //allow does not specify report data
+    let result = get_tdx_quote(Some("".to_string()));
+    assert!(result.is_ok());
 }
 
 #[test]
 fn tdx_report_data_size_48() {
+    // this one should be standard 48 bytes base64 encoded report data
     // "MTIzNDU2NzgxMjM0NTY3ODEyMzQ1Njc4MTIzNDU2NzgxMjM0NTY3ODEyMzQ1Njc4" is base64 of "123456781234567812345678123456781234567812345678", 48 bytes
-    let result = get_tdx_quote("MTIzNDU2NzgxMjM0NTY3ODEyMzQ1Njc4MTIzNDU2NzgxMjM0NTY3ODEyMzQ1Njc4".to_string());
+    let result = get_tdx_quote(Some("MTIzNDU2NzgxMjM0NTY3ODEyMzQ1Njc4MTIzNDU2NzgxMjM0NTY3ODEyMzQ1Njc4".to_string()));
+    assert!(result.is_ok());
+}
+
+#[test]
+fn tdx_report_data_null() {
+    // allow call get_tdx_quote with out specify report data
+    let result = get_tdx_quote(None);
     assert!(result.is_ok());
 }
 
 #[test]
 fn tdx_report_data_not_base64_encoded() {
-    let result = get_tdx_quote("123456781234567812345678123456781234567812345678".to_string());
+    //does not allow not base64 encoded report data
+    let result = get_tdx_quote(Some("123456781234567812345678123456781234567812345678".to_string()));
     assert!(result.is_err());
 }
