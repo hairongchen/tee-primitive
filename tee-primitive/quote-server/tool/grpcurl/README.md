@@ -8,13 +8,14 @@
 ```
 grpc.reflection.v1alpha.ServerReflection
 quoteserver.GetQuote
+quoteserver.Health
 ```
 ## describe a grpc call
 `./grpcurl -plaintext localhost:6789 describe quoteserver.GetQuote`
 ```
 quoteserver.GetQuote is a service:
 service GetQuote {
-  rpc GetQuote ( .quoteserver.GetQuoteRequest ) returns ( .quoteserver.QuoteReply );
+  rpc GetQuote ( .quoteserver.GetQuoteRequest ) returns ( .quoteserver.GetQuoteResponse );
 }
 ```
 ## access a grpc call
