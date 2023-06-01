@@ -13,20 +13,20 @@ pub mod quote_server {
         tonic::include_file_descriptor_set!("quote_server_descriptor");
 }
 
-pub struct CCNPGetQuote {
+pub struct TEEGetQuote {
     local_tee: tee::TeeType,
 }
 
-impl CCNPGetQuote {
+impl TEEGetQuote {
     fn new(_local_tee: TeeType) -> Self {
-        CCNPGetQuote {
+        TEEGetQuote {
             local_tee: _local_tee,
         }
     }
 }
 
 #[tonic::async_trait]
-impl GetQuote for CCNPGetQuote {
+impl GetQuote for TEEPGetQuote {
     async fn get_quote(
         &self,
         request: Request<GetQuoteRequest>,
@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .parse()
         .map_err(|e| anyhow::anyhow!("{}", e))?;
 
-    let getquote = CCNPGetQuote::new({
+    let getquote = TEE::new({
         match tee::get_tee_type() {
             tee::TeeType::PLAIN => panic!("Not found any TEE device!"),
             t => t,
@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
     health_reporter
-        .set_serving::<GetQuoteServer<CCNPGetQuote>>()
+        .set_serving::<GetQuoteServer<TEEGetQuote>>()
         .await;
 
     let reflection_service = tonic_reflection::server::Builder::configure()
